@@ -1,0 +1,3 @@
+integer :: maxx, maxy
+double :: nu, X, Y, g, uwall
+double, dimension(maxx,maxy) :: p, ux, uy, ae, aw, an, as
