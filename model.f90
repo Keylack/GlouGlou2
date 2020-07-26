@@ -1,4 +1,4 @@
-module subs
+module model
 
 implicit none
 
@@ -45,8 +45,8 @@ subroutine XMomentum
     real :: uw, ue, vn, vs
     real, dimension(imax, jmax) :: ux0
 
-    do i = 1, imax - 1
-        do j = 1, jmax - 1
+    do i = 1, imax 
+        do j = 1, jmax 
             a0(i,j) = dx*dy/dt 
 
             if(i /= 1) then
@@ -90,12 +90,9 @@ subroutine XMomentum
             ap_x(i,j) = ap(i,j)
         enddo
     enddo
-
     ux0 = ux
     call GaussSeidel(2, imax, 1, jmax, ux, ae, aw, as, an, sc, a0, ap)
     residualUx = Residuals(ux0, ux)
-
-
 return
 end subroutine
 
@@ -104,8 +101,8 @@ subroutine YMomentum
     real :: uw, ue, vn, vs
     real, dimension(imax, jmax) :: uy0
 
-    do i = 1, imax - 1
-        do j = 1, jmax - 1
+    do i = 1, imax 
+        do j = 1, jmax 
             a0(i,j) = dx*dy/dt 
 
             if(i /= 1) then
@@ -148,7 +145,6 @@ subroutine YMomentum
             ap_y(i,j) = ap(i,j)
         enddo
     enddo
-
     uy0 = uy
     call GaussSeidel(1, imax, 2, jmax, uy, ae, aw, as, an, sc, a0, ap)
     residualUy = Residuals(uy0, uy)
@@ -160,7 +156,7 @@ subroutine Continuity
 
     integer :: i, j
     real, dimension(imax, jmax) :: dnb_x, dnb_y
-    real, dimension(imax, jmax) :: pcorr0
+    real, dimension(imax,jmax) :: pcorr0
 
     do i = 1, imax 
         do j = 1, jmax 
@@ -198,7 +194,6 @@ subroutine Continuity
     pcorr0 = pcorr
     call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap)
     residualp = Residuals(pcorr0, pcorr)
-
 return
 end subroutine
 
@@ -210,7 +205,7 @@ real function Residuals(Phi, Phi0)
     Residuals = 0
     do i = 1, imax 
         do j = 1, jmax
-            Residuals = Residuals + (Phi(i,j) - Phi0(i,j))/(Phi(i,j))
+            Residuals = Residuals + (abs(Phi(i,j) - Phi0(i,j)))/(max(abs(Phi(i,j)), 1e-4))
         enddo
     enddo
 
@@ -235,12 +230,12 @@ subroutine PISO
         j = j + 1
         call YMomentum
     enddo
-    print*,'Equation Ux converge en : ', j, 'iterations'
+    print*,'Equation Uy converge en : ', j, 'iterations'
     do while (residualp > convergence)
         k = k + 1
         call Continuity
     enddo
-    print*,'Equation Ux converge en : ', k, 'iterations'
+    print*,'Equation continuite converge en : ', k, 'iterations'
     p = p + pcorr
 return
 end subroutine
