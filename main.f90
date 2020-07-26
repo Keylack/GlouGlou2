@@ -1,6 +1,6 @@
 program main
     use model
-    !use results
+    use results
 
     implicit none
     integer :: i
@@ -25,7 +25,7 @@ call maillage
 !call init_var
 
 t = 0
-do while (t < tmax)
+do while (t - tmax < 1e-10)
 
     print*, 'Temps :', t
 
@@ -44,8 +44,9 @@ do while (t < tmax)
     enddo
     print*,'convergence de PISO en ', i, 'iterations'
 
-t = t + dt
+    if(aint(t) - aint(t-dt) > 0) call resultat
 
+t = t + dt
 enddo
 
 end program main

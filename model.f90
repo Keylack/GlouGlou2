@@ -45,6 +45,13 @@ subroutine XMomentum
     real :: uw, ue, vn, vs
     real, dimension(imax, jmax) :: ux0
 
+    a0 = 0
+    ae = 0
+    aw = 0
+    as = 0
+    sc = 0
+    ap = 0
+
     do i = 1, imax 
         do j = 1, jmax 
             a0(i,j) = dx*dy/dt 
@@ -100,6 +107,13 @@ subroutine YMomentum
     integer :: i, j
     real :: uw, ue, vn, vs
     real, dimension(imax, jmax) :: uy0
+
+    a0 = 0
+    ae = 0
+    aw = 0
+    as = 0
+    sc = 0
+    ap = 0
 
     do i = 1, imax 
         do j = 1, jmax 
@@ -157,7 +171,12 @@ subroutine Continuity
     integer :: i, j
     real, dimension(imax, jmax) :: dnb_x, dnb_y
     real, dimension(imax,jmax) :: pcorr0
-
+    a0 = 0
+    ae = 0
+    aw = 0
+    as = 0
+    sc = 0
+    ap = 0
     do i = 1, imax 
         do j = 1, jmax 
             dnb_x(i,j) = dy/ap_x(i,j)
@@ -190,7 +209,12 @@ subroutine Continuity
             ap(i,j) = ae(i,j) + aw(i,j) + an(i,j) + as(i,j)
         enddo
     enddo
-
+    print*,'ae', ae
+    print*,'aw',aw
+    print*,'ap',ap
+    print*,'as',as
+    print*,'an',an
+    print*,'sc',sc
     pcorr0 = pcorr
     call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap, pcorr0)
     residualp = Residuals(pcorr0, pcorr)
@@ -225,6 +249,7 @@ subroutine PISO
         i = i+1
         call XMomentum
     enddo
+    print*,ux
     print*,'Equation Ux converge en : ', i, 'iterations'
     do while (residualUy > convergence)
         j = j + 1
@@ -236,6 +261,8 @@ subroutine PISO
         call Continuity
     enddo
     print*,'Equation continuite converge en : ', k, 'iterations'
+    print*,pcorr
+    print*,p
     p = p + pcorr
 return
 end subroutine
