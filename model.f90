@@ -91,7 +91,7 @@ subroutine XMomentum
         enddo
     enddo
     ux0 = ux
-    call GaussSeidel(2, imax, 1, jmax, ux, ae, aw, as, an, sc, a0, ap)
+    call GaussSeidel(2, imax, 1, jmax, ux, ae, aw, as, an, sc, a0, ap, ux_old)
     residualUx = Residuals(ux0, ux)
 return
 end subroutine
@@ -146,7 +146,7 @@ subroutine YMomentum
         enddo
     enddo
     uy0 = uy
-    call GaussSeidel(1, imax, 2, jmax, uy, ae, aw, as, an, sc, a0, ap)
+    call GaussSeidel(1, imax, 2, jmax, uy, ae, aw, as, an, sc, a0, ap, uy_old)
     residualUy = Residuals(uy0, uy)
 
 return
@@ -192,7 +192,7 @@ subroutine Continuity
     enddo
 
     pcorr0 = pcorr
-    call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap)
+    call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap, pcorr0)
     residualp = Residuals(pcorr0, pcorr)
 return
 end subroutine
@@ -240,13 +240,13 @@ subroutine PISO
 return
 end subroutine
 
-subroutine GaussSeidel(istart, iend, jstart, jend, Phi, ae, aw, as, an, sc, a0, ap)
+subroutine GaussSeidel(istart, iend, jstart, jend, Phi, ae, aw, as, an, sc, a0, ap, Phi0)
     integer :: i,j, istart, iend, jstart, jend
-    real, dimension(imax,jmax) :: Phi, ae, aw, an, as, sc, a0, ap 
+    real, dimension(imax,jmax) :: Phi, ae, aw, an, as, sc, a0, ap, Phi0
 
     do i = istart, iend 
         do j = jstart, jend 
-            Phi(i,j) = a0(i,j)*Phi(i,j) + sc(i,j)
+            Phi(i,j) = a0(i,j)*Phi0(i,j) + sc(i,j)
             if(i /= 1) then
                 Phi(i,j) = Phi(i,j) + aw(i,j)*Phi(i - 1, j)
             endif
@@ -269,4 +269,4 @@ subroutine GaussSeidel(istart, iend, jstart, jend, Phi, ae, aw, as, an, sc, a0, 
 return
 end subroutine
 
-end module subs
+end module model
