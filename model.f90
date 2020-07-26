@@ -81,14 +81,14 @@ subroutine XMomentum
 
             if(j == jmax) then
                 sc(i,jmax) = sc(i, jmax) + 2 * uwall * nu * dx/dy
-                ap(i, jmax) = ap(i, jmax) + nu*dx/dy
+                ap(i, jmax) = ap(i, jmax) + 2*nu*dx/dy
             endif
 
             if(j == 1) then
-                ap(i, 1) = ap(i, jmax) + nu*dx/dy
+                ap(i, 1) = ap(i, jmax) + 2*nu*dx/dy
             endif
             if(i == imax) then
-                ap(i, 1) = ap(i, jmax) + nu*dy/dx
+                ap(i, 1) = ap(i, jmax) + 2*nu*dy/dx
             endif
         enddo
     enddo
@@ -100,6 +100,12 @@ subroutine XMomentum
     ux0 = ux
     call GaussSeidel(2, imax, 1, jmax, ux, ae, aw, as, an, sc, a0, ap, ux_old)
     residualUx = Residuals(ux0, ux)
+!    print*,'ae', ae
+!    print*,'aw',aw
+!    print*,'ap',ap
+!    print*,'as',as
+!    print*,'an',an
+!    print*,'sc',sc
 return
 end subroutine
 
@@ -122,7 +128,6 @@ subroutine YMomentum
             if(i /= 1) then
                 uw = (ux(i, j) + ux(i, j - 1))/2
                 aw(i,j) = max(uw, 0.) * dy + nu*dy/dx
-                sc(i,j) = (p(i,j - 1) - p(i,j))*dy
             endif
 
             if(i /= imax) then
@@ -133,6 +138,7 @@ subroutine YMomentum
             if(j /= 1) then
                 vs = (uy(i ,j) + uy(i, j - 1))/2
                 as(i,j) = max(vs, 0.) * dx + nu*dx/dy
+                sc(i,j) = (p(i,j - 1) - p(i,j))*dy
             endif
 
             if(j /= jmax) then
@@ -143,14 +149,14 @@ subroutine YMomentum
             ap(i,j) = a0(i,j) + aw(i,j) + ae(i,j) + an(i,j) + as(i,j)
 
             if(j == jmax) then
-                ap(i, jmax) = ap(i, jmax) + nu*dx/dy
+                ap(i, jmax) = ap(i, jmax) + 2*nu*dx/dy
             endif
 
             if(i == 1) then
-                ap(1, j) = ap(1, j) + nu*dy/dx
+                ap(1, j) = ap(1, j) + 2*nu*dy/dx
             endif
             if(i == imax) then
-                ap(1, j) = ap(1, j) + nu*dy/dx
+                ap(1, j) = ap(1, j) + 2*nu*dy/dx
             endif
         enddo
     enddo
@@ -209,15 +215,16 @@ subroutine Continuity
             ap(i,j) = ae(i,j) + aw(i,j) + an(i,j) + as(i,j)
         enddo
     enddo
-    print*,'ae', ae
-    print*,'aw',aw
-    print*,'ap',ap
-    print*,'as',as
-    print*,'an',an
-    print*,'sc',sc
+!    print*,'ae', ae
+!    print*,'aw',aw
+!    print*,'ap',ap
+!    print*,'as',as
+!    print*,'an',an
+!    print*,'sc',sc
     pcorr0 = pcorr
     call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap, pcorr0)
     residualp = Residuals(pcorr0, pcorr)
+!    print*,p
 return
 end subroutine
 
@@ -249,7 +256,7 @@ subroutine PISO
         i = i+1
         call XMomentum
     enddo
-    print*,ux
+!    print*,ux
     print*,'Equation Ux converge en : ', i, 'iterations'
     do while (residualUy > convergence)
         j = j + 1
@@ -261,9 +268,8 @@ subroutine PISO
         call Continuity
     enddo
     print*,'Equation continuite converge en : ', k, 'iterations'
-    print*,pcorr
-    print*,p
-    p = p + pcorr
+    
+    call correctionChamps
 return
 end subroutine
 
@@ -294,6 +300,34 @@ subroutine GaussSeidel(istart, iend, jstart, jend, Phi, ae, aw, as, an, sc, a0, 
         enddo
     enddo
 return
+end subroutine
+
+subroutine correctionChamps
+
+    integer :: i, j 
+    real, dimension(imax, jmax) :: dnb_x, dnb_y
+
+    do i = 1, imax 
+        do j = 1, jmax 
+            dnb_x(i,j) = dy/ap_x(i,j)
+            dnb_y(i,j) = dx/ap_y(i,j)
+        enddo
+    enddo
+
+    p = p + 0.8*pcorr
+
+    do i = 2, imax
+        do j = 1, jmax
+            ux(i,j) = ux(i,j) + dnb_x(i,j) * (p(i-1,j) - p(i,j))
+        enddo
+    enddo
+
+    do i = 1, imax
+        do j = 2, jmax
+            uy(i,j) = uy(i,j) + dnb_y(i,j) * (p(i,j - 1) - p(i,j))
+        enddo
+    enddo
+
 end subroutine
 
 end module model

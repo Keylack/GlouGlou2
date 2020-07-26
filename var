@@ -1,4 +1,4 @@
-real, parameter :: uwall = 5, nu = 1e-6, convergence = 1e-5
+real, parameter :: uwall = 0.1, nu = 1e-6, convergence = 1e-5
 real :: height, width, tmax, dt, dx, dy, t, residual, residualUx, residualUy, residualp
 integer :: imax, jmax
 real, dimension(:,:), allocatable :: p, pcorr, ux, uy, ae, aw, an, as, ap, a0, sc, x, y, ap_x, ap_y, ux_old, uy_old 

@@ -25,8 +25,8 @@ call maillage
 !call init_var
 
 t = 0
-do while (t - tmax < 1e-10)
-
+do while (tmax - t > 1e-10)
+    t = t + dt
     print*, 'Temps :', t
 
     ux_old = ux
@@ -46,7 +46,6 @@ do while (t - tmax < 1e-10)
 
     if(aint(t) - aint(t-dt) > 0) call resultat
 
-t = t + dt
 enddo
 
 end program main

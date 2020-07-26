@@ -11,7 +11,7 @@ module results
         integer :: tRes, k, i, j
         print*,'Writing results t = :', nint(t)
 10      format('i = ', I3, '  j = ', I3)
-20      format(5(1X, E4.1))
+20      format(5(1X, E12.5))
         ZERO = '0'
         tRes = aint(t)
         write(carTime, '(I3)')tRes 
