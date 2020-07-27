@@ -50,7 +50,7 @@ subroutine XMomentum
     aw = 0
     as = 0
     sc = 0
-    ap = 0
+    ap = 1
 
     do i = 1, imax 
         do j = 1, jmax 
@@ -119,7 +119,7 @@ subroutine YMomentum
     aw = 0
     as = 0
     sc = 0
-    ap = 0
+    ap = 1
 
     do i = 1, imax 
         do j = 1, jmax 
@@ -165,6 +165,14 @@ subroutine YMomentum
             ap_y(i,j) = ap(i,j)
         enddo
     enddo
+   ! print*,'ap',ap
+   ! print*,'ae', ae
+   ! print*,'aw',aw
+   ! print*,'as',as
+   ! print*,'an',an
+   ! print*,'sc',sc        
+   ! print*,'a0',a0    
+   ! print*,ux
     uy0 = uy
     call GaussSeidel(1, imax, 2, jmax, uy, ae, aw, as, an, sc, a0, ap, uy_old)
     residualUy = Residuals(uy0, uy)
@@ -174,15 +182,16 @@ end subroutine
 
 subroutine Continuity
 
-    integer :: i, j
+    integer :: i, j, k 
     real, dimension(imax, jmax) :: dnb_x, dnb_y
-    real, dimension(imax,jmax) :: pcorr0
     a0 = 0
     ae = 0
     aw = 0
     as = 0
     sc = 0
-    ap = 0
+    ap = 1
+    
+
     do i = 1, imax 
         do j = 1, jmax 
             dnb_x(i,j) = dy/ap_x(i,j)
@@ -215,16 +224,18 @@ subroutine Continuity
             ap(i,j) = ae(i,j) + aw(i,j) + an(i,j) + as(i,j)
         enddo
     enddo
+!    print*,'ap',ap
 !    print*,'ae', ae
 !    print*,'aw',aw
-!    print*,'ap',ap
 !    print*,'as',as
 !    print*,'an',an
-!    print*,'sc',sc
+!    print*,'sc',sc        
+!    print*,'a0',a0    
+!    print*,uy
     pcorr0 = pcorr
     call GaussSeidel(1, imax, 1, jmax, pcorr, ae, aw, as, an, sc, a0, ap, pcorr0)
-    residualp = Residuals(pcorr0, pcorr)
-!    print*,p
+    residualp = Residuals(pcorr, pcorr0)
+
 return
 end subroutine
 
@@ -236,48 +247,20 @@ real function Residuals(Phi, Phi0)
     Residuals = 0
     do i = 1, imax 
         do j = 1, jmax
-            Residuals = Residuals + (abs(Phi(i,j) - Phi0(i,j)))/(max(abs(Phi(i,j)), 1e-4))
+            Residuals = Residuals + (abs(Phi(i,j) - Phi0(i,j)))/(max(abs(Phi(i,j)), 1e-10))
         enddo
     enddo
 
 return 
 end function
 
-subroutine PISO 
-    integer :: i,j,k
-    i = 0
-    j = 0
-    k = 0
-    residualUx = 10
-    residualUy = 10
-    residualp = 10
-
-    do while (residualUx > convergence)
-        i = i+1
-        call XMomentum
-    enddo
-!    print*,ux
-    print*,'Equation Ux converge en : ', i, 'iterations'
-    do while (residualUy > convergence)
-        j = j + 1
-        call YMomentum
-    enddo
-    print*,'Equation Uy converge en : ', j, 'iterations'
-    do while (residualp > convergence)
-        k = k + 1
-        call Continuity
-    enddo
-    print*,'Equation continuite converge en : ', k, 'iterations'
-    
-    call correctionChamps
-return
-end subroutine
 
 subroutine GaussSeidel(istart, iend, jstart, jend, Phi, ae, aw, as, an, sc, a0, ap, Phi0)
     integer :: i,j, istart, iend, jstart, jend
     real, dimension(imax,jmax) :: Phi, ae, aw, an, as, sc, a0, ap, Phi0
 
-    do i = istart, iend 
+    do i = istart, iend lboundl
+        
         do j = jstart, jend 
             Phi(i,j) = a0(i,j)*Phi0(i,j) + sc(i,j)
             if(i /= 1) then
@@ -306,6 +289,7 @@ subroutine correctionChamps
 
     integer :: i, j 
     real, dimension(imax, jmax) :: dnb_x, dnb_y
+    real :: alpha
 
     do i = 1, imax 
         do j = 1, jmax 
@@ -313,21 +297,55 @@ subroutine correctionChamps
             dnb_y(i,j) = dx/ap_y(i,j)
         enddo
     enddo
-
-    p = p + 0.8*pcorr
+    alpha = 0.6
+    p = p + alpha * pcorr
 
     do i = 2, imax
         do j = 1, jmax
-            ux(i,j) = ux(i,j) + dnb_x(i,j) * (p(i-1,j) - p(i,j))
+            ux(i,j) = ux(i,j) + alpha * dnb_x(i,j) * (pcorr(i-1,j) - pcorr(i,j))
         enddo
     enddo
 
     do i = 1, imax
         do j = 2, jmax
-            uy(i,j) = uy(i,j) + dnb_y(i,j) * (p(i,j - 1) - p(i,j))
+            uy(i,j) = uy(i,j) + alpha * dnb_y(i,j) * (pcorr(i,j - 1) - pcorr(i,j))
+        enddo
+    enddo
+return
+end subroutine
+
+subroutine verifContinuite
+    integer :: i,j
+    real, dimension(imax,jmax) :: resCont
+
+    rescontinuity = 0.
+    resCont = 0.
+    do i = 1, imax
+        do j = 1, jmax
+            if(i /= 1) then
+                resCont(i,j) = resCont(i,j) + ux(i,j)
+            endif
+
+            if(i /= imax) then
+                resCont(i,j) = resCont(i,j) - ux(i+1, j)
+            endif
+
+            if(j /= 1) then
+                resCont(i,j) = resCont(i,j) + uy(i,j)
+            endif
+
+            if(j /= jmax)then
+                resCont(i,j) = resCont(i,j) - uy(i, j + 1)
+            endif
         enddo
     enddo
 
+    do i = 1, imax 
+        do j = 1,jmax 
+            rescontinuity = rescontinuity + abs(resCont(i,j))
+        enddo
+    enddo
+return
 end subroutine
 
 end module model
