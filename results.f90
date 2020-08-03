@@ -28,8 +28,8 @@ module results
         write(1, '(A)')'Variables= "x(m)" "y(m)" "Ux(m/s)" "Uy(m/s)" "p(m2/s2)"'
         write(1, 10)imax,jmax
 
-        do i = 1, imax
-            do j = 1, jmax
+        do j = 1, jmax
+            do i = 1, imax
                 write(1, 20)x(i,j), y(i,j), ux(i,j), uy(i,j), p(i,j)
             enddo
         enddo

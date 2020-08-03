@@ -1,5 +1,6 @@
-real, parameter :: uwall = 2, nu = 1e-6, convergence = 1e-3
-real :: height, width, tmax, dt, dx, dy, t, residual, residualUx, residualUy, residualp, rescontinuity
+real, parameter :: uwall = 10, nu = 1e-2, convergence = 1e-3
+real :: height, width, tmax, dt, dx, dy, t, residual, residualUx, residualUy, residualp, rescontinuity, alpha
 integer :: imax, jmax
-real, dimension(:,:), allocatable :: p, pcorr, ux, uy, ae, aw, an, as, ap, a0, sc, x, y, ap_x, ap_y, ux_old, uy_old 
-real, dimension(:,:), allocatable :: ux0, uy0, ux00, uy00, pcorr0
+real, dimension(:,:), allocatable :: p, pcorr, ux, uy, aep, awp, anp, asp, app, a0p, scp, x, y, ap_x, ap_y, ux_old, uy_old 
+real, dimension(:,:), allocatable :: awu, aeu, asu, anu, a0u, apu, scu, awv, aev, asv, anv, a0v, apv, scv
+real, dimension(:,:), allocatable :: ux0, uy0, ux00, uy00, pcorr0,zero
